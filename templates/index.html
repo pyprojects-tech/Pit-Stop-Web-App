@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pit Stop Rating App</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .rating-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        .rating-row label {
+            flex: 1 0 100%;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+        .rating-button {
+            font-size: 24px;
+            background-color: #ffffff;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .rating-button:hover {
+            background-color: #e0e0e0;
+        }
+        .rating-button.selected {
+            border-width: 3px;
+            transform: scale(1.1);
+        }
+        .thumbs-up.selected {
+            background-color: #90EE90;
+            border-color: #32CD32;
+        }
+        .thumbs-down.selected {
+            background-color: #FFA07A;
+            border-color: #FF4500;
+        }
+        .comment-input {
+            width: 100%;
+            padding: 5px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        #action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        #action-buttons button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        #action-buttons button:hover {
+            background-color: #45a049;
+        }
+        #database {
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .rating-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .button-group {
+                width: 100%;
+                justify-content: space-between;
+            }
+            #action-buttons button {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pit Stop Rating App</h1>
+        <div id="ratings">
+            {% for category in categories %}
+            <div class="rating-row">
+                <label>{{ category }}:</label>
+                <div class="button-group">
+                    <button class="rating-button thumbs-up" data-category="{{ category }}" data-value="1">👍</button>
+                    <button class="rating-button thumbs-down" data-category="{{ category }}" data-value="-1">👎</button>
+                </div>
+                <input type="text" class="comment-input" data-category="{{ category }}" placeholder="Comment for {{ category }}">
+            </div>
+            {% endfor %}
+        </div>
+
+        <div id="action-buttons">
+            <button onclick="submitEntries()">Submit</button>
+            <button onclick="resetEntries()">Reset</button>
+            <button onclick="displayDatabase()">Display Database</button>
+        </div>
+
+        <div id="database"></div>
+    </div>
+
+    <script>
+        let ratings = {};
+        let comments = {};
+
+        // Add event listeners to all rating buttons
+        document.querySelectorAll('.rating-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const category = this.dataset.category;
+                const value = parseInt(this.dataset.value);
+                setRating(category, value);
+            });
+        });
+
+        // Add event listeners to all comment inputs
+        document.querySelectorAll('.comment-input').forEach(input => {
+            input.addEventListener('input', function() {
+                const category = this.dataset.category;
+                comments[category] = this.value;
+            });
+        });
+
+        function setRating(category, value) {
+            ratings[category] = value;
+            updateButtonStyles(category);
+        }
+
+        function updateButtonStyles(category) {
+            const buttons = document.querySelectorAll(`.rating-button[data-category="${category}"]`);
+            buttons.forEach(button => {
+                const buttonValue = parseInt(button.dataset.value);
+                button.classList.toggle('selected', ratings[category] === buttonValue);
+            });
+        }
+
+        function submitEntries() {
+            if (Object.keys(ratings).length === 0) {
+                alert("Please rate at least one category before submitting.");
+                return;
+            }
+
+            const data = {};
+            for (const category in ratings) {
+                data[category] = {
+                    rating: ratings[category],
+                    comment: comments[category] || ''
+                };
+            }
+
+            axios.post('/submit', data)
+                .then(response => {
+                    alert(response.data.message);
+                    resetEntries();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("An error occurred while submitting. Please try again.");
+                });
+        }
+
+        function resetEntries() {
+            ratings = {};
+            comments = {};
+            document.querySelectorAll('.rating-button').forEach(button => {
+                button.classList.remove('selected');
+            });
+            document.querySelectorAll('.comment-input').forEach(input => {
+                input.value = '';
+            });
+        }
+
+        function displayDatabase() {
+            axios.get('/display')
+                .then(response => {
+                    const data = response.data;
+                    let html = '<table><tr><th>Category</th><th>Rating</th><th>Comment</th></tr>';
+                    data.forEach(entry => {
+                        html += `<tr><td>${entry.Category}</td><td>${entry.Rating}</td><td>${entry.Comment}</td></tr>`;
+                    });
+                    html += '</table>';
+                    document.getElementById('database').innerHTML = html;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
