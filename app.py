@@ -35,3 +35,7 @@ def submit():
 @app.route('/display')
 def display():
     return df.to_json(orient='records')
+
+if __name__ == '__main__':
+    # This block will only run when you're running the app locally
+    app.run(debug=True)
