@@ -24,7 +24,7 @@
         header {
             width: 100%;
             text-align: center;
-            padding: 20px 0;
+            padding: 5px 0;
             background-color: white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
@@ -32,7 +32,7 @@
         max-width: 300px;
         margin: 0 auto;
         padding: 0 20px;
-        height: 100px; /* Fixed height */
+        height: 120px; /* Fixed height */
         display: flex;
         align-items: center;
         justify-content: center;
@@ -141,6 +141,9 @@
             background-color: #4CAF50;
             color: white;
         }
+        .button-container {
+            padding-top: 15px; /* This adds space above the button container */
+        }
         .header {
             text-align: center;
             margin-bottom: 20px;
@@ -178,8 +181,9 @@
     </header>
     <div class="container">
         <div class="header">
-            <a href="{{ url_for('main') }}" class="back-button">Back</a>
-            <h1>Pit Stop Rating App</h1>
+            <div class="button-container">
+    <a href="{{ url_for('main') }}" class="back-button">Back</a>
+</div>
         </div>
         <div id="search-container" style="min-height: 40px; border: 1px solid red; margin: 20px 0;"></div>
         <div id="ratings">

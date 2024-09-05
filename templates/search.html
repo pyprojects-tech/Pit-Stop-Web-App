@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search for a Pit Stop</title>
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
@@ -21,15 +20,15 @@
         header {
             width: 100%;
             text-align: center;
-            padding: 20px 0;
+            padding: 5px 0;
             background-color: white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .logo-container {
         max-width: 300px;
         margin: 0 auto;
-        padding: 0 20px;
-        height: 100px; /* Fixed height */
+        padding: 0 10px;
+        height: 120px; /* Fixed height */
         display: flex;
         align-items: center;
         justify-content: center;
@@ -69,6 +68,9 @@
             background-color: #4CAF50;
             color: white;
         }
+        .button-container {
+            padding-top: 15px; /* This adds space above the button container */
+        }
         .mapboxgl-ctrl-geocoder {
             min-width: 100%;
         }
@@ -82,6 +84,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            padding-top: 10px;
             margin: 0 15px;
             cursor: pointer;
             opacity: 0.5;
@@ -107,8 +110,9 @@
             <img src="{{ url_for('static', filename='images/zenstop-high-resolution-logo.png') }}" alt="Zen Stop Logo" class="logo">
         </div>
     </header>
-    <a href="{{ url_for('main') }}" class="back-button">Back to Main</a>
-    <h1>Search for a Pit Stop</h1>
+    <div class="button-container">
+        <a href="{{ url_for('main') }}" class="back-button">Back</a>
+    </div>
     <div id="selection-bar">
         <div class="category-button" data-category="gas station">
             <img src="{{ url_for('static', filename='images/gas.png') }}" alt="Gas Station" class="category-icon">
