@@ -1,5 +1,4 @@
-import os
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, url_for
 import pandas as pd
 
 app = Flask(__name__)
@@ -8,22 +7,30 @@ app = Flask(__name__)
 CATEGORIES = ["Bathrooms", "Food", "Safety", "Cleanliness", "Staff"]
 
 # Initialize an empty DataFrame with the specific categories
-df = pd.DataFrame(columns=['Category', 'Rating', 'Comment'])
+df = pd.DataFrame(columns=['Address', 'Category', 'Rating', 'Comment'])
 
 @app.route('/')
-def index():
-    return render_template('index.html', categories=CATEGORIES)
+def main():
+    return render_template('main.html')
+
+@app.route('/review')
+def review():
+    return render_template('review.html', categories=CATEGORIES)
 
 @app.route('/submit', methods=['POST'])
 def submit():
     global df
     data = request.json
-    if not data:
-        return jsonify({"message": "No data received"}), 400
+    if not data or 'address' not in data or 'ratings' not in data:
+        return jsonify({"message": "Invalid data received"}), 400
+
+    address = data['address']
+    ratings = data['ratings']
 
     new_entries = []
-    for category, entry in data.items():
+    for category, entry in ratings.items():
         new_entries.append({
+            'Address': address,
             'Category': category,
             'Rating': entry['rating'],
             'Comment': entry['comment']
@@ -36,6 +43,13 @@ def submit():
 def display():
     return df.to_json(orient='records')
 
+@app.route('/search')
+def search():
+    return render_template('search.html')
+
+@app.route('/testpage')
+def testpage():
+    return render_template('testpage.html')
+
 if __name__ == '__main__':
-    # This block will only run when you're running the app locally
     app.run(debug=True)
