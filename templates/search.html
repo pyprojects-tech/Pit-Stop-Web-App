@@ -11,11 +11,12 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
         }
         header {
             width: 100%;
@@ -37,6 +38,14 @@
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
         }
         #map {
             height: 400px;
@@ -81,12 +90,14 @@
         .category-button.selected {
             opacity: 1;
         }
-        .category-emoji {
-            font-size: 31px; /* Increased by 30% from 24px */
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
         }
         .category-label {
             font-size: 12px;
-            margin-bottom: 5px;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -100,16 +111,16 @@
     <h1>Search for a Pit Stop</h1>
     <div id="selection-bar">
         <div class="category-button" data-category="gas station">
+            <img src="{{ url_for('static', filename='images/Gas.png') }}" alt="Gas Station" class="category-icon">
             <span class="category-label">Gas Station</span>
-            <span class="category-emoji">⛽</span>
         </div>
-        <div class="category-button" data-category="restaurant">
-            <span class="category-label">Restaurant</span>
-            <span class="category-emoji">🍽️</span>
+        <div class="category-button" data-category="cafe">
+            <img src="{{ url_for('static', filename='images/coffee.png') }}" alt="cafe" class="category-icon">
+            <span class="category-label">Coffee Shop</span>
         </div>
         <div class="category-button" data-category="rest stop">
+            <img src="{{ url_for('static', filename='images/nature.png') }}" alt="Rest Stop" class="category-icon">
             <span class="category-label">Rest Stop</span>
-            <span class="category-emoji">💤</span>
         </div>
     </div>
     <div id="map"></div>
@@ -119,15 +130,15 @@
         
         const map = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v11',
+            style: 'mapbox://styles/mapbox/light-v10', // This is a light grayscale style
             center: [-74.5, 40],
             zoom: 9
         });
 
         const categoryIcons = {
-            'gas station': '⛽',
-            'restaurant': '🍽️',
-            'rest stop': '💤'
+            'gas station': "{{ url_for('static', filename='images/Gas.png') }}",
+            'cafe': "{{ url_for('static', filename='images/coffee.png') }}",
+            'rest stop': "{{ url_for('static', filename='images/nature.png') }}"
         };
 
         let userLocation;
@@ -152,31 +163,38 @@
 
             if (selectedCategories.length === 0 || !userLocation) return;
 
-            selectedCategories.forEach(category => {
+            const promises = selectedCategories.map(category => {
                 const searchTerm = category === 'rest stop' ? 'rest area' : category;
                 const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchTerm)}.json?proximity=${userLocation[0]},${userLocation[1]}&limit=10&access_token=${mapboxgl.accessToken}`;
 
-                fetch(url)
+                return fetch(url)
                     .then(response => response.json())
                     .then(data => {
-                        data.features.forEach((feature, index) => {
+                        return data.features.map((feature, index) => {
                             const marker = new mapboxgl.Marker({ element: createCustomMarker(categoryIcons[category]) })
                                 .setLngLat(feature.center)
-                                .addTo(map)
                                 .setPopup(new mapboxgl.Popup().setHTML(`<h3>${index + 1}. ${feature.text}</h3><p>${feature.place_name}</p>`));
-                            markers.push(marker);
+                            return marker;
                         });
-
-                        fitMapToMarkers();
                     });
+            });
+
+            Promise.all(promises).then(markerGroups => {
+                markers = markerGroups.flat();
+                markers = clusterMarkers(markers);
+                markers.forEach(marker => marker.addTo(map));
+                fitMapToMarkers();
             });
         }
 
         function createCustomMarker(icon) {
             const el = document.createElement('div');
             el.className = 'custom-marker';
-            el.style.fontSize = '31px'; // Increased by 30% from 24px
-            el.innerHTML = icon;
+            const img = document.createElement('img');
+            img.src = icon;
+            img.style.width = '30px';
+            img.style.height = '30px';
+            el.appendChild(img);
             return el;
         }
 
@@ -212,6 +230,29 @@
 
         map.on('load', initializeMap);
         map.addControl(new mapboxgl.NavigationControl());
+
+        function clusterMarkers(markers, distance = 30) {
+            const clustered = [];
+            markers.forEach(marker => {
+                let nearbyMarker = clustered.find(m => 
+                    Math.abs(m.getLngLat().lng - marker.getLngLat().lng) < distance / 111000 &&
+                    Math.abs(m.getLngLat().lat - marker.getLngLat().lat) < distance / 111000
+                );
+                
+                if (nearbyMarker) {
+                    const angle = Math.random() * 2 * Math.PI;
+                    const offsetLng = (Math.random() * distance / 2 + distance / 2) / 111000 * Math.cos(angle);
+                    const offsetLat = (Math.random() * distance / 2 + distance / 2) / 111000 * Math.sin(angle);
+                    marker.setLngLat([
+                        marker.getLngLat().lng + offsetLng,
+                        marker.getLngLat().lat + offsetLat
+                    ]);
+                }
+                
+                clustered.push(marker);
+            });
+            return clustered;
+        }
     </script>
 </body>
 </html>
