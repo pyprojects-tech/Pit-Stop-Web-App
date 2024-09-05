@@ -47,9 +47,5 @@ def display():
 def search():
     return render_template('search.html')
 
-@app.route('/testpage')
-def testpage():
-    return render_template('testpage.html')
-
 if __name__ == '__main__':
     app.run(debug=True)
