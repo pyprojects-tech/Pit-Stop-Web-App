@@ -111,7 +111,7 @@
     <h1>Search for a Pit Stop</h1>
     <div id="selection-bar">
         <div class="category-button" data-category="gas station">
-            <img src="{{ url_for('static', filename='images/Gas.png') }}" alt="Gas Station" class="category-icon">
+            <img src="{{ url_for('static', filename='images/gas.png') }}" alt="Gas Station" class="category-icon">
             <span class="category-label">Gas Station</span>
         </div>
         <div class="category-button" data-category="cafe">
@@ -136,7 +136,7 @@
         });
 
         const categoryIcons = {
-            'gas station': "{{ url_for('static', filename='images/Gas.png') }}",
+            'gas station': "{{ url_for('static', filename='images/gas.png') }}",
             'cafe': "{{ url_for('static', filename='images/coffee.png') }}",
             'rest stop': "{{ url_for('static', filename='images/nature.png') }}"
         };
