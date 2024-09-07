@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search for a Pit Stop</title>
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
@@ -20,34 +19,33 @@
         }
         header {
             width: 100%;
-            display: flex;
-            justify-content: center;
-            padding: 10px 0;
+            text-align: center;
+            padding: 5px 0;
             background-color: white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-
         .logo-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 0 20px;
+        max-width: 300px;
+        margin: 0 auto;
+        padding: 0 10px;
+        height: 120px; /* Fixed height */
+        display: flex;
+        align-items: center;
+        justify-content: center;
         }
-
         .logo {
-            max-height: 120px;
+            max-width: 100%;
+            max-height: 100%;
             object-fit: contain;
         }
-
-        .title {
-            font-family: "Andale Mono", monospace;
-            font-size: 1.5em; /* Reduced font size */
-            color: #006400; /* Dark green color, adjust if needed */
-            margin-top: 10px; /* Space between logo and text */
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
         }
-
         #map {
             height: 400px;
             width: 100%;
@@ -109,11 +107,12 @@
 <body>
     <header>
         <div class="logo-container">
-            <img src="{{ url_for('static', filename='images/ZenIcon.png') }}" alt="Zen Stop Logo" class="logo">
-            <h1 class="title">ZenStop</h1>
+            <img src="{{ url_for('static', filename='images/zenstop-high-resolution-logo.png') }}" alt="Zen Stop Logo" class="logo">
         </div>
     </header>
-    <a href="{{ url_for('main') }}" class="back-button">Back</a>
+    <div class="button-container">
+        <a href="{{ url_for('main') }}" class="back-button">Back</a>
+    </div>
     <div id="selection-bar">
         <div class="category-button" data-category="gas station">
             <img src="{{ url_for('static', filename='images/gas.png') }}" alt="Gas Station" class="category-icon">

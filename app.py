@@ -4,7 +4,7 @@ import pandas as pd
 app = Flask(__name__)
 
 # Define the specific categories
-CATEGORIES = ["Bathrooms", "Food", "Safety", "Cleanliness", "Staff"]
+CATEGORIES = ["Bathrooms", "Caffeine", "Nap Zone"]
 
 # Initialize an empty DataFrame with the specific categories
 df = pd.DataFrame(columns=['Address', 'Category', 'Rating', 'Comment'])
@@ -46,6 +46,21 @@ def display():
 @app.route('/search')
 def search():
     return render_template('search.html')
+
+@app.route('/review_content')
+def review_content():
+    location = request.args.get('location', '')
+    return render_template('review_content.html', categories=CATEGORIES, location=location)
+
+@app.route('/submit_review', methods=['POST'])
+def submit_review():
+    location = request.form.get('location')
+    rating = request.form.get('rating')
+    comment = request.form.get('comment')
+    
+    # Process the review data (e.g., save to database)
+    
+    return jsonify({'message': 'Review submitted successfully!'})
 
 if __name__ == '__main__':
     app.run(debug=True)

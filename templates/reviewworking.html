@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://api.mapbox.com/search-js/v1.0.0-beta.21/web.js"></script>
+    <script>
+        console.log('Mapbox Search SDK object:', mapboxsearch);
+    </script>
     <style>
         * {
             box-sizing: border-box;
@@ -19,29 +23,24 @@
         }
         header {
             width: 100%;
-            display: flex;
-            justify-content: center;
-            padding: 10px 0;
+            text-align: center;
+            padding: 5px 0;
             background-color: white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .logo-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 0 20px;
+        max-width: 300px;
+        margin: 0 auto;
+        padding: 0 20px;
+        height: 120px; /* Fixed height */
+        display: flex;
+        align-items: center;
+        justify-content: center;
         }
         .logo {
-            max-height: 120px;
+            max-width: 100%;
+            max-height: 100%;
             object-fit: contain;
-        }
-        .title {
-            font-family: "Andale Mono", monospace;
-            font-size: 1.5em; /* Reduced font size */
-            color: #006400; /* Dark green color, adjust if needed */
-            margin-top: 10px; /* Space between logo and text */
         }
         .container {
             text-align: center;
@@ -58,28 +57,20 @@
         .rating-row {
             display: flex;
             align-items: center;
-            justify-content: space-between;
             margin-bottom: 15px;
             padding: 10px;
             background-color: #f0f0f0;
             border-radius: 5px;
         }
         .rating-row label {
-            display: flex;
-            align-items: center;
+            flex: 0 0 120px;
+            margin-right: 10px;
             font-weight: bold;
-            margin-right: 10px;
-            flex: 1;
-        }
-        .emoji {
-            font-size: 2em;
-            margin-right: 10px;
-            width: 1.5em;
-            text-align: center;
         }
         .button-group {
             display: flex;
             gap: 10px;
+            margin-right: 10px;
         }
         .rating-button {
             font-size: 24px;
@@ -109,29 +100,11 @@
             background-color: #FFA07A;
             border-color: #FF4500;
         }
-        .input-group {
-            display: flex;
-            align-items: center;
-        }
-        input[type="number"] {
-            width: 60px;
+        .comment-input {
+            flex: 1;
             padding: 5px;
             border: 1px solid #ccc;
             border-radius: 3px;
-        }
-        .radio-group {
-            display: flex;
-            gap: 20px; /* Adjust this value to control spacing between Yes and No */
-        }
-        .radio-option {
-            display: flex;
-            align-items: center;
-        }
-        .radio-option input[type="radio"] {
-            margin-right: 5px;
-        }
-        .radio-option + .radio-option {
-            margin-left: 0px; /* Add space between "Yes" and "No" */
         }
         #action-buttons {
             display: flex;
@@ -152,6 +125,29 @@
         #action-buttons button:hover {
             background-color: #45a049;
         }
+        .back-button {
+            display: inline-block;
+            margin-bottom: 15px;
+            padding: 5px 10px;
+            background-color: white;
+            color: #4CAF50;
+            text-decoration: none;
+            border-radius: 5px;
+            border: 2px solid #4CAF50;
+            font-weight: bold;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .back-button:hover {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .button-container {
+            padding-top: 15px; /* This adds space above the button container */
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
         @media (max-width: 600px) {
             .rating-row {
                 flex-direction: column;
@@ -163,58 +159,44 @@
             .button-group {
                 margin-bottom: 5px;
             }
+            .comment-input {
+                width: 100%;
+            }
+        }
+        #search-container {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+        .mapboxgl-ctrl-geocoder {
+            min-width: 100%;
         }
     </style>
 </head>
 <body>
     <header>
         <div class="logo-container">
-            <img src="{{ url_for('static', filename='images/ZenIcon.png') }}" alt="Zen Stop Logo" class="logo">
-            <h1 class="title">ZenStop</h1>
+            <img src="{{ url_for('static', filename='images/zenstop-high-resolution-logo.png') }}" alt="Zen Stop Logo" class="logo">
         </div>
     </header>
     <div class="container">
         <div class="header">
+            <div class="button-container">
+    <a href="{{ url_for('main') }}" class="back-button">Back</a>
+</div>
         </div>
+        <div id="search-container" style="min-height: 40px; border: 1px solid red; margin: 20px 0;"></div>
         <div id="ratings">
+            {% for category in categories %}
             <div class="rating-row">
-                <label><span class="emoji">🧼</span>Cleanliness</label>
+                <label>{{ category }}:</label>
                 <div class="button-group">
-                    <button class="rating-button thumbs-up" data-category="cleanliness" data-value="1">👍</button>
-                    <button class="rating-button thumbs-down" data-category="cleanliness" data-value="-1">👎</button>
+                    <button class="rating-button thumbs-up" data-category="{{ category }}" data-value="1">👍</button>
+                    <button class="rating-button thumbs-down" data-category="{{ category }}" data-value="-1">👎</button>
                 </div>
+                <input type="text" class="comment-input" data-category="{{ category }}" placeholder="Comment for {{ category }}">
             </div>
-
-            <div class="rating-row">
-                <label><span class="emoji">⚠️</span>Safety</label>
-                <div class="button-group">
-                    <button class="rating-button thumbs-up" data-category="safety" data-value="1">👍</button>
-                    <button class="rating-button thumbs-down" data-category="safety" data-value="-1">👎</button>
-                </div>
-            </div>
-
-            <div class="rating-row">
-                <label><span class="emoji">🚽</span># of Stalls</label>
-                <div class="input-group">
-                    <input type="number" id="stalls" min="0" step="1">
-                </div>
-            </div>
-
-            <div class="rating-row">
-                <label><span class="emoji">🔑</span>Key Required</label>
-                <div class="input-group">
-                    <div class="radio-group">
-                        <div class="radio-option">
-                            <input type="radio" id="keyRequired-yes" name="keyRequired" value="Yes">
-                            <label for="keyRequired-yes">Yes</label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" id="keyRequired-no" name="keyRequired" value="No">
-                            <label for="keyRequired-no">No</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
 
         <div id="action-buttons">
@@ -227,15 +209,57 @@
     </div>
 
     <script>
-        function submitEntries() {
-            const ratings = {
-                cleanliness: document.querySelector('.rating-button.selected[data-category="cleanliness"]')?.dataset.value || '',
-                safety: document.querySelector('.rating-button.selected[data-category="safety"]')?.dataset.value || '',
-                stalls: document.getElementById('stalls').value,
-                keyRequired: document.querySelector('input[name="keyRequired"]:checked')?.value || ''
-            };
+        let selectedAddress = '';
+        let searchBox;
 
-            axios.post('/submit', { ratings: ratings })
+        const accessToken = 'pk.eyJ1IjoicHlwcm9qZWN0c3RlY2giLCJhIjoiY20wb2kxMG1wMDkyazJscHkzamZ0ZWNhbSJ9.IKqL2NV6IzGWoMPhc4DfVg';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded');
+            
+            function initializeSearchBox() {
+                console.log('Initializing search box...');
+                console.log('mapboxsearch object:', mapboxsearch);
+                console.log('accessToken:', accessToken);
+
+                if (typeof mapboxsearch === 'undefined' || typeof mapboxsearch.autofill === 'undefined') {
+                    console.error('Mapbox Search SDK is not loaded correctly. Retrying in 1 second...');
+                    setTimeout(initializeSearchBox, 1000);
+                    return;
+                }
+
+                try {
+                    mapboxsearch.autofill({
+                        accessToken: accessToken,
+                        options: {
+                            country: 'US',
+                            types: ['address', 'poi']
+                        }
+                    });
+                    console.log('Mapbox Search autofill initialized');
+                } catch (error) {
+                    console.error('Error initializing Mapbox Search autofill:', error);
+                }
+            }
+
+            initializeSearchBox();
+        });
+
+        function submitEntries() {
+            if (!selectedAddress) {
+                alert('Please select an address before submitting.');
+                return;
+            }
+
+            const ratings = {};
+            document.querySelectorAll('.rating-button.selected').forEach(button => {
+                const category = button.dataset.category;
+                const value = parseInt(button.dataset.value);
+                const comment = document.querySelector(`.comment-input[data-category="${category}"]`).value;
+                ratings[category] = { rating: value, comment: comment };
+            });
+
+            axios.post('/submit', { address: selectedAddress, ratings: ratings })
                 .then(response => {
                     alert(response.data.message);
                     resetEntries();
@@ -245,17 +269,20 @@
 
         function resetEntries() {
             document.querySelectorAll('.rating-button').forEach(button => button.classList.remove('selected'));
-            document.getElementById('stalls').value = '';
-            document.querySelectorAll('input[name="keyRequired"]').forEach(radio => radio.checked = false);
+            document.querySelectorAll('.comment-input').forEach(input => input.value = '');
+            if (searchBox) {
+                searchBox.clear();
+            }
+            selectedAddress = '';
         }
 
         function displayDatabase() {
             axios.get('/display')
                 .then(response => {
                     const data = response.data;
-                    let html = '<table border="1"><tr><th>Address</th><th>Cleanliness</th><th>Safety</th><th># of Stalls</th><th>Key/Purchase Required</th></tr>';
+                    let html = '<table border="1"><tr><th>Address</th><th>Category</th><th>Rating</th><th>Comment</th></tr>';
                     data.forEach(entry => {
-                        html += `<tr><td>${entry.Address}</td><td>${entry.Cleanliness}</td><td>${entry.Safety}</td><td>${entry.Stalls}</td><td>${entry.KeyRequired}</td></tr>`;
+                        html += `<tr><td>${entry.Address}</td><td>${entry.Category}</td><td>${entry.Rating}</td><td>${entry.Comment}</td></tr>`;
                     });
                     html += '</table>';
                     document.getElementById('database').innerHTML = html;

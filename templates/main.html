@@ -13,27 +13,34 @@
             min-height: 100vh;
             margin: 0;
             background-color: #f0f0f0;
-        }
-        header {
+            header {
             width: 100%;
-            text-align: center;
-            padding: 5px 0;
+            display: flex;
+            justify-content: center;
+            padding: 10px 0;
             background-color: white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
         .logo-container {
-        max-width: 300px;
-        margin: 0 auto;
-        padding: 0 20px;
-        height: 120px; /* Fixed height */
-        display: flex;
-        align-items: center;
-        justify-content: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
+
         .logo {
-            max-width: 100%;
-            max-height: 100%;
+            max-height: 120px;
             object-fit: contain;
+        }
+
+        .title {
+            font-family: "Andale Mono", monospace;
+            font-size: 1.5em; /* Reduced font size */
+            color: #006400; /* Dark green color, adjust if needed */
+            margin-top: 10px; /* Space between logo and text */
         }
         .container {
             text-align: center;
@@ -74,7 +81,8 @@
 <body>
     <header>
         <div class="logo-container">
-            <img src="{{ url_for('static', filename='images/zenstop-high-resolution-logo.png') }}" alt="Zen Stop Logo" class="logo">
+            <img src="{{ url_for('static', filename='images/ZenIcon.png') }}" alt="Zen Stop Logo" class="logo">
+            <h1 class="title">ZenStop</h1>
         </div>
     </header>
     <div class="container">
