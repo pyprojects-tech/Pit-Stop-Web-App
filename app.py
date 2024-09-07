@@ -4,7 +4,7 @@ import pandas as pd
 app = Flask(__name__)
 
 # Initialize the dataframe with the new columns
-df = pd.DataFrame(columns=['Address', 'Cleanliness', 'Safety', 'Stalls', 'KeyRequired', 'Comments'])
+df = pd.DataFrame(columns=['Address', 'Rating', 'Comments'])
 
 @app.route('/')
 def home():
@@ -24,37 +24,30 @@ def review():
 def submit():
     global df
     data = request.json
-    app.logger.info(f"Received data: {data}")  # Add this line
+    app.logger.info(f"Received data: {data}")
     
-    if not data or 'ratings' not in data:
-        app.logger.error("Invalid data received")  # Add this line
-        return jsonify({"message": "Invalid data received"}), 400
+    if not data or 'review' not in data:
+        app.logger.error("Invalid data structure received")
+        return jsonify({"message": "Invalid data structure received"}), 400
 
-    ratings = data['ratings']
-    app.logger.info(f"Ratings: {ratings}")  # Add this line
+    review = data['review']
+    app.logger.info(f"Review data: {review}")
 
     # Validate the received data
-    required_fields = ['address', 'cleanliness', 'safety', 'stalls', 'keyRequired']
-    missing_fields = [field for field in required_fields if field not in ratings or not ratings[field]]
+    required_fields = ['address', 'rating', 'comments']
+    missing_fields = [field for field in required_fields if field not in review or not review[field]]
     if missing_fields:
-        app.logger.error(f"Missing fields: {missing_fields}")  # Add this line
+        app.logger.error(f"Missing fields: {missing_fields}")
         return jsonify({"message": f"Please fill out all the required fields. Missing: {', '.join(missing_fields)}"}), 400
-
-    # Convert ratings to integers if they're not empty, otherwise use None
-    def safe_int(value):
-        return int(value) if value and value.strip() else None
 
     # Create a new entry
     new_entry = pd.DataFrame({
-        'Address': [ratings['address']],
-        'Cleanliness': [safe_int(ratings['cleanliness'])],
-        'Safety': [safe_int(ratings['safety'])],
-        'Stalls': [safe_int(ratings['stalls'])],
-        'KeyRequired': [ratings['keyRequired']],
-        'Comments': [ratings['comments']]
+        'Address': [review['address']],
+        'Rating': [int(review['rating'])],
+        'Comments': [review['comments']]
     })
 
-    app.logger.info(f"New entry: {new_entry.to_dict('records')}")  # Add this line
+    app.logger.info(f"New entry: {new_entry.to_dict('records')}")
 
     # Add the new entry to the DataFrame
     df = pd.concat([df, new_entry], ignore_index=True)

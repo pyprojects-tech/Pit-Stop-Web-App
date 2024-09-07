@@ -3,78 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <title>ZenStop Review</title>
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+            color: #333;
         }
         header {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            padding: 10px 0;
-            background-color: white;
+            background-color: #fff;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem;
+            text-align: center;
         }
         .logo-container {
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 0 20px;
+            flex-direction: column;
         }
         .logo {
-            max-height: 120px;
-            object-fit: contain;
+            max-width: 100px;
+            height: auto;
         }
         .title {
             font-family: "Andale Mono", monospace;
-            font-size: 1.5em;
+            font-size: 1.5rem;
             color: #006400;
-            margin-top: 10px;
-        }
-        .container {
-            text-align: center;
-            background-color: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            margin-top: 20px;
+            margin-top: 0.5rem;
         }
         .back-button {
-            display: block;
-            width: fit-content;
-            margin: 20px auto;
-            padding: 10px 20px;
+            display: inline-block;
+            padding: 0.5rem 1rem;
             background-color: #4CAF50;
             color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
             text-decoration: none;
+            border-radius: 4px;
+            margin: 1rem 0;
         }
-        .back-button:hover {
-            background-color: #45a049;
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1rem;
         }
         #geocoder {
-            width: 100%;
-            max-width: 300px;
-            margin: 10px auto;
+            margin-bottom: 1rem;
         }
         .mapboxgl-ctrl-geocoder {
             width: 100%;
@@ -83,130 +67,66 @@
             border: 1px solid #ccc;
         }
         .rating-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            padding: 10px;
-            background-color: #f0f0f0;
-            border-radius: 5px;
+            margin-bottom: 1rem;
         }
         .rating-row label {
-            display: flex;
-            align-items: center;
-            font-weight: bold;
-            margin-right: 10px;
-            flex: 1;
-        }
-        .emoji {
-            font-size: 2em;
-            margin-right: 10px;
-            width: 1.5em;
-            text-align: center;
-        }
-        .button-group {
-            display: flex;
-            gap: 10px;
-        }
-        .rating-button {
-            font-size: 24px;
-            background-color: #ffffff;
-            border: 2px solid #ccc;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .rating-button:hover {
-            background-color: #e0e0e0;
-        }
-        .rating-button.selected {
-            border-width: 3px;
-            transform: scale(1.1);
-        }
-        .thumbs-up.selected {
-            background-color: #90EE90;
-            border-color: #32CD32;
-        }
-        .thumbs-down.selected {
-            background-color: #FFA07A;
-            border-color: #FF4500;
-        }
-        .input-group {
-            display: flex;
-            align-items: center;
-        }
-        input[type="number"] {
-            width: 60px;
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-        }
-        .radio-group {
-            display: flex;
-            gap: 20px;
-        }
-        .radio-option {
-            display: flex;
-            align-items: center;
-        }
-        .radio-option input[type="radio"] {
-            margin-right: 5px;
-        }
-        .radio-option + .radio-option {
-            margin-left: 0px;
-        }
-        #action-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        #action-buttons button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        #action-buttons button:hover {
-            background-color: #45a049;
-        }
-        @media (max-width: 600px) {
-            .rating-row {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .rating-row label {
-                margin-bottom: 5px;
-            }
-            .button-group {
-                margin-bottom: 5px;
-            }
-        }
-        .comments-row {
-            margin-top: 20px;
-        }
-
-        .comments-row label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+            margin-bottom: 0.5rem;
         }
-
-        .comments-row textarea {
+        .star-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+        }
+        .star-rating input {
+            display: none;
+        }
+        .star-rating label {
+            cursor: pointer;
+            font-size: 2rem;
+            color: #ddd;
+            transition: color 0.2s;
+        }
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label {
+            color: #ffd700;
+        }
+        .input-group textarea {
             width: 100%;
-            padding: 10px;
+            padding: 0.5rem;
             border: 1px solid #ccc;
             border-radius: 4px;
             resize: vertical;
+        }
+        #action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        #action-buttons button {
+            flex: 1;
+            padding: 0.5rem;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        #database {
+            margin-top: 1rem;
+            background-color: #fff;
+            padding: 1rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 0.5rem;
+            }
+            #action-buttons {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -217,84 +137,41 @@
             <h1 class="title">ZenStop</h1>
         </div>
     </header>
-    <a href="{{ url_for('search') }}" class="back-button">Back</a>
     <div class="container">
+        <a href="{{ url_for('search') }}" class="back-button">Back</a>
         <div id="geocoder"></div>
         <div id="ratings">
             <div class="rating-row">
-                <label><span class="emoji">🧼</span>Cleanliness</label>
-                <div class="button-group">
-                    <button class="rating-button thumbs-up" data-category="cleanliness" data-value="1">👍</button>
-                    <button class="rating-button thumbs-down" data-category="cleanliness" data-value="-1">👎</button>
+                <label>Rating</label>
+                <div class="star-rating">
+                    <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
+                    <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
+                    <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
+                    <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
+                    <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
                 </div>
             </div>
-
             <div class="rating-row">
-                <label><span class="emoji">⚠️</span>Safety</label>
-                <div class="button-group">
-                    <button class="rating-button thumbs-up" data-category="safety" data-value="1">👍</button>
-                    <button class="rating-button thumbs-down" data-category="safety" data-value="-1">👎</button>
-                </div>
-            </div>
-
-            <div class="rating-row">
-                <label><span class="emoji">🚽</span># of Stalls</label>
+                <label>Comments</label>
                 <div class="input-group">
-                    <input type="number" id="stalls" min="0" step="1">
+                    <textarea id="comments" rows="4"></textarea>
                 </div>
-            </div>
-
-            <div class="rating-row">
-                <label><span class="emoji">🔑</span>Key Required</label>
-                <div class="input-group">
-                    <div class="radio-group">
-                        <div class="radio-option">
-                            <input type="radio" id="keyRequired-yes" name="keyRequired" value="Yes">
-                            <label for="keyRequired-yes">Yes</label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" id="keyRequired-no" name="keyRequired" value="No">
-                            <label for="keyRequired-no">No</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="comments-row">
-                <label><span class="emoji">💬</span>Comments</label>
-                <textarea id="comments" name="comments" rows="4" placeholder="Enter your comments here..."></textarea>
             </div>
         </div>
-
         <div id="action-buttons">
             <button id="submit-btn">Submit</button>
             <button id="reset-btn">Reset</button>
             <button id="display-btn">Display Database</button>
         </div>
-
         <div id="database"></div>
     </div>
 
     <script>
         mapboxgl.accessToken = '{{ mapbox_access_token }}';
 
-        // Function to get URL parameters
-        function getUrlParameter(name) {
-            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-            var results = regex.exec(location.search);
-            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
-        }
-
-        // Get address and name from URL parameters
-        const addressParam = getUrlParameter('address');
-        const nameParam = getUrlParameter('name');
-
-        console.log(`Received address: ${addressParam}, name: ${nameParam}`);
-
         const geocoder = new MapboxGeocoder({
             accessToken: mapboxgl.accessToken,
-            types: 'address,poi',  // Include both addresses and points of interest
+            types: 'address,poi',
             countries: 'us',
             language: 'en',
             limit: 5,
@@ -304,112 +181,40 @@
 
         geocoder.addTo('#geocoder');
 
-        // Function to update form fields
-        function updateFormFields(address, name) {
-            const addressElement = document.getElementById('address');
-            const locationNameElement = document.getElementById('location-name');
-
-            if (addressElement) {
-                addressElement.value = address || '';
-                console.log(`Set address to: ${addressElement.value}`);
-            } else {
-                console.warn('Address element not found');
-            }
-
-            if (locationNameElement) {
-                locationNameElement.value = name || '';
-                console.log(`Set location name to: ${locationNameElement.value}`);
-            } else {
-                console.warn('Location name element not found');
-            }
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
         }
 
-        // Function to initialize all interactive elements
-        function initializeInteractiveElements() {
-            // Thumbs up/down buttons
-            document.querySelectorAll('.rating-button').forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const category = this.dataset.category;
-                    document.querySelectorAll(`.rating-button[data-category="${category}"]`).forEach(btn => btn.classList.remove('selected'));
-                    this.classList.add('selected');
-                });
-            });
+        const addressParam = getUrlParameter('address');
+        const nameParam = getUrlParameter('name');
 
-            // Attach submit event listener
-            const submitBtn = document.getElementById('submit-btn');
-            if (submitBtn) {
-                submitBtn.addEventListener('click', submitEntries);
-            }
+        console.log(`Received address: ${addressParam}, name: ${nameParam}`);
 
-            // Attach reset event listener
-            const resetBtn = document.getElementById('reset-btn');
-            if (resetBtn) {
-                resetBtn.addEventListener('click', resetEntries);
-            }
-
-            // Attach display event listener
-            const displayBtn = document.getElementById('display-btn');
-            if (displayBtn) {
-                displayBtn.addEventListener('click', displayDatabase);
-            }
-        }
-
-        // Set initial value if address is provided
         if (addressParam) {
             console.log(`Setting initial value to: ${addressParam}`);
             geocoder.setInput(addressParam);
-            updateFormFields(addressParam, nameParam);
         }
-
-        geocoder.on('result', function(e) {
-            const place = e.result;
-            console.log('Geocoder result:', place);
-            updateFormFields(place.place_name, place.text);
-        });
-
-        geocoder.on('error', function(e) {
-            console.error('Geocoder error:', e);
-        });
-
-        // Ensure the geocoder is fully loaded before setting the input
-        geocoder.on('load', function() {
-            console.log('Geocoder loaded');
-            if (addressParam) {
-                console.log(`Setting geocoder input to: ${addressParam}`);
-                geocoder.setInput(addressParam);
-            }
-            // Initialize interactive elements after geocoder is loaded
-            initializeInteractiveElements();
-        });
-
-        // Also initialize interactive elements when the DOM is fully loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeInteractiveElements();
-            if (addressParam) {
-                updateFormFields(addressParam, nameParam);
-            }
-        });
 
         function submitEntries(event) {
             event.preventDefault();
             
-            // Get the address from the geocoder input
             const addressInput = document.querySelector('.mapboxgl-ctrl-geocoder input');
             const address = addressInput ? addressInput.value : '';
+            const rating = document.querySelector('input[name="rating"]:checked')?.value || '';
+            const comments = document.getElementById('comments').value;
 
-            const ratings = {
+            const reviewData = {
                 address: address,
-                cleanliness: document.querySelector('.rating-button.selected[data-category="cleanliness"]')?.dataset.value || '',
-                safety: document.querySelector('.rating-button.selected[data-category="safety"]')?.dataset.value || '',
-                stalls: document.getElementById('stalls')?.value || '',
-                keyRequired: document.querySelector('input[name="keyRequired"]:checked')?.value || '',
-                comments: document.getElementById('comments')?.value || ''
+                rating: rating,
+                comments: comments
             };
 
-            console.log('Submitting ratings:', ratings);
+            console.log('Submitting review:', reviewData);
 
-            axios.post('/submit', { ratings: ratings })
+            axios.post('/submit', { review: reviewData })
                 .then(response => {
                     alert(response.data.message);
                     resetEntries();
@@ -421,27 +226,37 @@
         }
 
         function resetEntries() {
-            document.querySelectorAll('.rating-button').forEach(button => button.classList.remove('selected'));
             const addressInput = document.querySelector('.mapboxgl-ctrl-geocoder input');
             if (addressInput) addressInput.value = '';
-            if (document.getElementById('stalls')) document.getElementById('stalls').value = '';
-            document.querySelectorAll('input[name="keyRequired"]').forEach(radio => radio.checked = false);
-            if (document.getElementById('comments')) document.getElementById('comments').value = '';
+            document.querySelectorAll('input[name="rating"]').forEach(radio => radio.checked = false);
+            document.getElementById('comments').value = '';
         }
 
         function displayDatabase() {
             axios.get('/display')
                 .then(response => {
                     const data = response.data;
-                    let html = '<table border="1"><tr><th>Address</th><th>Cleanliness</th><th>Safety</th><th># of Stalls</th><th>Key/Purchase Required</th><th>Comments</th></tr>';
+                    let html = '<table border="1"><tr><th>Address</th><th>Rating</th><th>Comments</th></tr>';
                     data.forEach(entry => {
-                        html += `<tr><td>${entry.Address}</td><td>${entry.Cleanliness}</td><td>${entry.Safety}</td><td>${entry.Stalls}</td><td>${entry.KeyRequired}</td><td>${entry.Comments}</td></tr>`;
+                        html += `<tr><td>${entry.Address}</td><td>${entry.Rating}</td><td>${entry.Comments}</td></tr>`;
                     });
                     html += '</table>';
                     document.getElementById('database').innerHTML = html;
                 })
                 .catch(error => console.error('Error:', error));
         }
+
+        document.getElementById('submit-btn').addEventListener('click', submitEntries);
+        document.getElementById('reset-btn').addEventListener('click', resetEntries);
+        document.getElementById('display-btn').addEventListener('click', displayDatabase);
+
+        geocoder.on('result', function(e) {
+            console.log('Geocoder result:', e.result);
+        });
+
+        geocoder.on('error', function(e) {
+            console.error('Geocoder error:', e);
+        });
     </script>
 </body>
 </html>
