@@ -43,14 +43,23 @@
             color: #006400;
             margin-top: 0.5rem;
         }
+        .back-button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px; /* Adjust as needed */
+            margin-bottom: 10px;
+        }
         .back-button {
-            display: inline-block;
-            padding: 0.5rem 1rem;
+            padding: 10px 20px;
             background-color: #4CAF50;
             color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            margin: 1rem 0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .back-button:hover {
+            background-color: #4CAF50;
         }
         .container {
             max-width: 600px;
@@ -73,24 +82,24 @@
             display: block;
             margin-bottom: 0.5rem;
         }
-        .star-rating {
+        .emoji-rating {
             display: flex;
             flex-direction: row-reverse;
             justify-content: flex-end;
         }
-        .star-rating input {
+        .emoji-rating input {
             display: none;
         }
-        .star-rating label {
+        .emoji-rating label {
             cursor: pointer;
             font-size: 2rem;
-            color: #ddd;
-            transition: color 0.2s;
+            transition: opacity 0.2s;
+            opacity: 0.3;
         }
-        .star-rating label:hover,
-        .star-rating label:hover ~ label,
-        .star-rating input:checked ~ label {
-            color: #ffd700;
+        .emoji-rating label:hover,
+        .emoji-rating label:hover ~ label,
+        .emoji-rating input:checked ~ label {
+            opacity: 1;
         }
         .input-group textarea {
             width: 100%;
@@ -128,6 +137,21 @@
                 flex-direction: column;
             }
         }
+
+        #map {
+            width: 100%;
+            height: 10vh; /* Use viewport height for flexibility */
+            max-height: 300px; /* Set a maximum height */
+            min-height: 10px; /* Set a minimum height */
+        }
+
+        /* Add a media query for smaller screens */
+        @media (max-width: 768px) {
+            #map {
+                height: 30vh; /* Reduce height on smaller screens */
+                min-height: 150px; /* Adjust minimum height for mobile */
+            }
+        }
     </style>
 </head>
 <body>
@@ -138,33 +162,30 @@
         </div>
     </header>
     <div class="container">
-        <a href="{{ url_for('search') }}" class="back-button">Back</a>
+        <div class="back-button-container">
+            <button class="back-button" onclick="window.history.back()">Back</button>
+        </div>
         <div id="geocoder"></div>
         <div id="ratings">
             <div class="rating-row">
                 <label>Rating</label>
-                <div class="star-rating">
-                    <input type="radio" id="star5" name="rating" value="5" /><label for="star5">★</label>
-                    <input type="radio" id="star4" name="rating" value="4" /><label for="star4">★</label>
-                    <input type="radio" id="star3" name="rating" value="3" /><label for="star3">★</label>
-                    <input type="radio" id="star2" name="rating" value="2" /><label for="star2">★</label>
-                    <input type="radio" id="star1" name="rating" value="1" /><label for="star1">★</label>
+                <div class="emoji-rating">
+                    <input type="radio" id="emoji5" name="rating" value="5" /><label for="emoji5">💩</label>
+                    <input type="radio" id="emoji4" name="rating" value="4" /><label for="emoji4">💩</label>
+                    <input type="radio" id="emoji3" name="rating" value="3" /><label for="emoji3">💩</label>
+                    <input type="radio" id="emoji2" name="rating" value="2" /><label for="emoji2">💩</label>
+                    <input type="radio" id="emoji1" name="rating" value="1" /><label for="emoji1">💩</label>
                 </div>
             </div>
             <div class="rating-row">
-                <label>Comments</label>
                 <div class="input-group">
-                    <textarea id="comments" rows="4"></textarea>
+                    <textarea id="comments" rows="4" placeholder="Write your comments..."></textarea>
                 </div>
             </div>
         </div>
         <div id="action-buttons">
             <button id="submit-btn">Submit</button>
-            <button id="reset-btn">Reset</button>
-            <button id="display-btn">Display Database</button>
         </div>
-        <div id="database"></div>
-    </div>
 
     <script>
         mapboxgl.accessToken = '{{ mapbox_access_token }}';
@@ -174,7 +195,7 @@
             types: 'address,poi',
             countries: 'us',
             language: 'en',
-            limit: 5,
+            limit: 1,
             placeholder: 'Enter location address',
             mapboxgl: mapboxgl,
         });
@@ -196,6 +217,23 @@
         if (addressParam) {
             console.log(`Setting initial value to: ${addressParam}`);
             geocoder.setInput(addressParam);
+            
+            // Disable the geocoder input after setting the value
+            setTimeout(() => {
+                const geocoderInput = document.querySelector('.mapboxgl-ctrl-geocoder input');
+                if (geocoderInput) {
+                    geocoderInput.disabled = true;
+                    geocoderInput.style.backgroundColor = '#f0f0f0';
+                }
+            }, 100);
+
+            // Perform a forward geocoding request to get the exact coordinates
+            geocoder.query(addressParam, (result) => {
+                if (result && result.features && result.features.length > 0) {
+                    const feature = result.features[0];
+                    geocoder.setInput(feature.place_name);
+                }
+            });
         }
 
         function submitEntries(event) {

@@ -54,21 +54,29 @@
             max-width: 800px;
             margin-top: 20px;
         }
+        .back-button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px; /* Adjust as needed */
+            margin-bottom: 10px;
+        }
+        .back-button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px; /* Adjust as needed */
+            margin-bottom: 10px;
+        }
         .back-button {
-            display: inline-block;
-            margin-bottom: 15px;
-            padding: 5px 10px;
-            background-color: white;
-            color: #4CAF50;
-            text-decoration: none;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
             border-radius: 5px;
-            border: 2px solid #4CAF50;
-            font-weight: bold;
-            transition: background-color 0.3s, color 0.3s;
+            cursor: pointer;
+            font-size: 16px;
         }
         .back-button:hover {
             background-color: #4CAF50;
-            color: white;
         }
         .button-container {
             padding-top: 15px; /* This adds space above the button container */
@@ -127,7 +135,10 @@
             <h1 class="title">ZenStop</h1>
         </div>
     </header>
-    <a href="{{ url_for('main') }}" class="back-button">Back</a>
+    <div class="back-button-container">
+        <button class="back-button" onclick="window.history.back()">Back</button>
+    </div>
+
     <div id="selection-bar">
         <div class="category-button" data-category="gas station">
             <img src="{{ url_for('static', filename='images/gas.png') }}" alt="Gas Station" class="category-icon">
@@ -174,7 +185,11 @@
 
         function updateMap() {
             // Clear existing markers
-            markers.forEach(marker => marker.remove());
+            markers.forEach(markerData => {
+                if (markerData.marker && typeof markerData.marker.remove === 'function') {
+                    markerData.marker.remove();
+                }
+            });
             markers = [];
 
             const selectedCategories = Array.from(document.querySelectorAll('.category-button.selected'))
