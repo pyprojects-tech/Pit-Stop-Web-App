@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
     <style>
         * {
             box-sizing: border-box;
@@ -39,9 +43,9 @@
         }
         .title {
             font-family: "Andale Mono", monospace;
-            font-size: 1.5em; /* Reduced font size */
-            color: #006400; /* Dark green color, adjust if needed */
-            margin-top: 10px; /* Space between logo and text */
+            font-size: 1.5em;
+            color: #006400;
+            margin-top: 10px;
         }
         .container {
             text-align: center;
@@ -51,9 +55,32 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             margin-top: 20px;
         }
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
+        .back-button {
+            display: block;
+            width: fit-content;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+        }
+        .back-button:hover {
+            background-color: #45a049;
+        }
+        #geocoder {
+            width: 100%;
+            max-width: 300px;
+            margin: 10px auto;
+        }
+        .mapboxgl-ctrl-geocoder {
+            width: 100%;
+            max-width: none;
+            box-shadow: none;
+            border: 1px solid #ccc;
         }
         .rating-row {
             display: flex;
@@ -121,7 +148,7 @@
         }
         .radio-group {
             display: flex;
-            gap: 20px; /* Adjust this value to control spacing between Yes and No */
+            gap: 20px;
         }
         .radio-option {
             display: flex;
@@ -131,7 +158,7 @@
             margin-right: 5px;
         }
         .radio-option + .radio-option {
-            margin-left: 0px; /* Add space between "Yes" and "No" */
+            margin-left: 0px;
         }
         #action-buttons {
             display: flex;
@@ -164,6 +191,23 @@
                 margin-bottom: 5px;
             }
         }
+        .comments-row {
+            margin-top: 20px;
+        }
+
+        .comments-row label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .comments-row textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+        }
     </style>
 </head>
 <body>
@@ -173,9 +217,9 @@
             <h1 class="title">ZenStop</h1>
         </div>
     </header>
+    <a href="{{ url_for('search') }}" class="back-button">Back</a>
     <div class="container">
-        <div class="header">
-        </div>
+        <div id="geocoder"></div>
         <div id="ratings">
             <div class="rating-row">
                 <label><span class="emoji">🧼</span>Cleanliness</label>
@@ -215,61 +259,189 @@
                     </div>
                 </div>
             </div>
+
+            <div class="comments-row">
+                <label><span class="emoji">💬</span>Comments</label>
+                <textarea id="comments" name="comments" rows="4" placeholder="Enter your comments here..."></textarea>
+            </div>
         </div>
 
         <div id="action-buttons">
-            <button onclick="submitEntries()">Submit</button>
-            <button onclick="resetEntries()">Reset</button>
-            <button onclick="displayDatabase()">Display Database</button>
+            <button id="submit-btn">Submit</button>
+            <button id="reset-btn">Reset</button>
+            <button id="display-btn">Display Database</button>
         </div>
 
         <div id="database"></div>
     </div>
 
     <script>
-        function submitEntries() {
+        mapboxgl.accessToken = '{{ mapbox_access_token }}';
+
+        // Function to get URL parameters
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        // Get address and name from URL parameters
+        const addressParam = getUrlParameter('address');
+        const nameParam = getUrlParameter('name');
+
+        console.log(`Received address: ${addressParam}, name: ${nameParam}`);
+
+        const geocoder = new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            types: 'address,poi',  // Include both addresses and points of interest
+            countries: 'us',
+            language: 'en',
+            limit: 5,
+            placeholder: 'Enter location address',
+            mapboxgl: mapboxgl,
+        });
+
+        geocoder.addTo('#geocoder');
+
+        // Function to update form fields
+        function updateFormFields(address, name) {
+            const addressElement = document.getElementById('address');
+            const locationNameElement = document.getElementById('location-name');
+
+            if (addressElement) {
+                addressElement.value = address || '';
+                console.log(`Set address to: ${addressElement.value}`);
+            } else {
+                console.warn('Address element not found');
+            }
+
+            if (locationNameElement) {
+                locationNameElement.value = name || '';
+                console.log(`Set location name to: ${locationNameElement.value}`);
+            } else {
+                console.warn('Location name element not found');
+            }
+        }
+
+        // Function to initialize all interactive elements
+        function initializeInteractiveElements() {
+            // Thumbs up/down buttons
+            document.querySelectorAll('.rating-button').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const category = this.dataset.category;
+                    document.querySelectorAll(`.rating-button[data-category="${category}"]`).forEach(btn => btn.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+
+            // Attach submit event listener
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', submitEntries);
+            }
+
+            // Attach reset event listener
+            const resetBtn = document.getElementById('reset-btn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', resetEntries);
+            }
+
+            // Attach display event listener
+            const displayBtn = document.getElementById('display-btn');
+            if (displayBtn) {
+                displayBtn.addEventListener('click', displayDatabase);
+            }
+        }
+
+        // Set initial value if address is provided
+        if (addressParam) {
+            console.log(`Setting initial value to: ${addressParam}`);
+            geocoder.setInput(addressParam);
+            updateFormFields(addressParam, nameParam);
+        }
+
+        geocoder.on('result', function(e) {
+            const place = e.result;
+            console.log('Geocoder result:', place);
+            updateFormFields(place.place_name, place.text);
+        });
+
+        geocoder.on('error', function(e) {
+            console.error('Geocoder error:', e);
+        });
+
+        // Ensure the geocoder is fully loaded before setting the input
+        geocoder.on('load', function() {
+            console.log('Geocoder loaded');
+            if (addressParam) {
+                console.log(`Setting geocoder input to: ${addressParam}`);
+                geocoder.setInput(addressParam);
+            }
+            // Initialize interactive elements after geocoder is loaded
+            initializeInteractiveElements();
+        });
+
+        // Also initialize interactive elements when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeInteractiveElements();
+            if (addressParam) {
+                updateFormFields(addressParam, nameParam);
+            }
+        });
+
+        function submitEntries(event) {
+            event.preventDefault();
+            
+            // Get the address from the geocoder input
+            const addressInput = document.querySelector('.mapboxgl-ctrl-geocoder input');
+            const address = addressInput ? addressInput.value : '';
+
             const ratings = {
+                address: address,
                 cleanliness: document.querySelector('.rating-button.selected[data-category="cleanliness"]')?.dataset.value || '',
                 safety: document.querySelector('.rating-button.selected[data-category="safety"]')?.dataset.value || '',
-                stalls: document.getElementById('stalls').value,
-                keyRequired: document.querySelector('input[name="keyRequired"]:checked')?.value || ''
+                stalls: document.getElementById('stalls')?.value || '',
+                keyRequired: document.querySelector('input[name="keyRequired"]:checked')?.value || '',
+                comments: document.getElementById('comments')?.value || ''
             };
+
+            console.log('Submitting ratings:', ratings);
 
             axios.post('/submit', { ratings: ratings })
                 .then(response => {
                     alert(response.data.message);
                     resetEntries();
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error:', error.response?.data || error.message);
+                    alert('An error occurred while submitting the review.');
+                });
         }
 
         function resetEntries() {
             document.querySelectorAll('.rating-button').forEach(button => button.classList.remove('selected'));
-            document.getElementById('stalls').value = '';
+            const addressInput = document.querySelector('.mapboxgl-ctrl-geocoder input');
+            if (addressInput) addressInput.value = '';
+            if (document.getElementById('stalls')) document.getElementById('stalls').value = '';
             document.querySelectorAll('input[name="keyRequired"]').forEach(radio => radio.checked = false);
+            if (document.getElementById('comments')) document.getElementById('comments').value = '';
         }
 
         function displayDatabase() {
             axios.get('/display')
                 .then(response => {
                     const data = response.data;
-                    let html = '<table border="1"><tr><th>Address</th><th>Cleanliness</th><th>Safety</th><th># of Stalls</th><th>Key/Purchase Required</th></tr>';
+                    let html = '<table border="1"><tr><th>Address</th><th>Cleanliness</th><th>Safety</th><th># of Stalls</th><th>Key/Purchase Required</th><th>Comments</th></tr>';
                     data.forEach(entry => {
-                        html += `<tr><td>${entry.Address}</td><td>${entry.Cleanliness}</td><td>${entry.Safety}</td><td>${entry.Stalls}</td><td>${entry.KeyRequired}</td></tr>`;
+                        html += `<tr><td>${entry.Address}</td><td>${entry.Cleanliness}</td><td>${entry.Safety}</td><td>${entry.Stalls}</td><td>${entry.KeyRequired}</td><td>${entry.Comments}</td></tr>`;
                     });
                     html += '</table>';
                     document.getElementById('database').innerHTML = html;
                 })
                 .catch(error => console.error('Error:', error));
         }
-
-        document.querySelectorAll('.rating-button').forEach(button => {
-            button.addEventListener('click', function() {
-                const category = this.dataset.category;
-                document.querySelectorAll(`.rating-button[data-category="${category}"]`).forEach(btn => btn.classList.remove('selected'));
-                this.classList.add('selected');
-            });
-        });
     </script>
 </body>
 </html>

@@ -104,6 +104,20 @@
             font-size: 12px;
             margin-top: 5px;
         }
+        .review-button {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .review-button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -176,19 +190,48 @@
                     .then(response => response.json())
                     .then(data => {
                         return data.features.map((feature, index) => {
-                            const marker = new mapboxgl.Marker({ element: createCustomMarker(categoryIcons[category]) })
+                            const el = createCustomMarker(categoryIcons[category]);
+                            const popupContent = `
+                                <h3>${index + 1}. ${feature.text}</h3>
+                                <p>${feature.place_name}</p>
+                                <a href="#" class="review-button">Leave a Review</a>
+                            `;
+                            const marker = new mapboxgl.Marker(el)
                                 .setLngLat(feature.center)
-                                .setPopup(new mapboxgl.Popup().setHTML(`<h3>${index + 1}. ${feature.text}</h3><p>${feature.place_name}</p>`));
-                            return marker;
+                                .setPopup(new mapboxgl.Popup().setHTML(popupContent));
+                            return { marker, popupContent, locationName: feature.text };
                         });
                     });
             });
 
             Promise.all(promises).then(markerGroups => {
+                console.log("All promises resolved");
                 markers = markerGroups.flat();
+                console.log(`Total markers created: ${markers.length}`);
                 markers = clusterMarkers(markers);
-                markers.forEach(marker => marker.addTo(map));
+                markers.forEach(({ marker, popupContent, locationName }) => {
+                    console.log(`Adding marker at ${marker.getLngLat()}`);
+                    const popup = new mapboxgl.Popup().setHTML(popupContent);
+                    
+                    popup.on('open', () => {
+                        const reviewButton = popup.getElement().querySelector('.review-button');
+                        if (reviewButton) {
+                            reviewButton.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                const address = encodeURIComponent(popup.getElement().querySelector('p').textContent);
+                                const name = encodeURIComponent(locationName);
+                                console.log(`Redirecting to review page with address: ${address} and name: ${name}`);
+                                window.location.href = `{{ url_for('review') }}?address=${address}&name=${name}`;
+                            });
+                        }
+                    });
+                    
+                    marker.setPopup(popup);
+                    marker.addTo(map);
+                });
                 fitMapToMarkers();
+            }).catch(error => {
+                console.error("Error in updateMap:", error);
             });
         }
 
@@ -206,7 +249,7 @@
         function fitMapToMarkers() {
             const bounds = new mapboxgl.LngLatBounds();
             bounds.extend(userLocation);
-            markers.forEach(marker => bounds.extend(marker.getLngLat()));
+            markers.forEach(markerData => bounds.extend(markerData.marker.getLngLat()));
             map.fitBounds(bounds, { padding: 50 });
         }
 
@@ -238,23 +281,23 @@
 
         function clusterMarkers(markers, distance = 30) {
             const clustered = [];
-            markers.forEach(marker => {
+            markers.forEach(markerData => {
                 let nearbyMarker = clustered.find(m => 
-                    Math.abs(m.getLngLat().lng - marker.getLngLat().lng) < distance / 111000 &&
-                    Math.abs(m.getLngLat().lat - marker.getLngLat().lat) < distance / 111000
+                    Math.abs(m.marker.getLngLat().lng - markerData.marker.getLngLat().lng) < distance / 111000 &&
+                    Math.abs(m.marker.getLngLat().lat - markerData.marker.getLngLat().lat) < distance / 111000
                 );
                 
                 if (nearbyMarker) {
                     const angle = Math.random() * 2 * Math.PI;
                     const offsetLng = (Math.random() * distance / 2 + distance / 2) / 111000 * Math.cos(angle);
                     const offsetLat = (Math.random() * distance / 2 + distance / 2) / 111000 * Math.sin(angle);
-                    marker.setLngLat([
-                        marker.getLngLat().lng + offsetLng,
-                        marker.getLngLat().lat + offsetLat
+                    markerData.marker.setLngLat([
+                        markerData.marker.getLngLat().lng + offsetLng,
+                        markerData.marker.getLngLat().lat + offsetLat
                     ]);
                 }
                 
-                clustered.push(marker);
+                clustered.push(markerData);
             });
             return clustered;
         }
