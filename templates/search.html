@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search for a Pit Stop</title>
+    <script>const df_avgjson = {{ df_avg | tojson }};</script>
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -205,7 +207,9 @@
                     .then(response => response.json())
                     .then(data => {
                         return data.features.map((feature, index) => {
-                            const el = createCustomMarker(categoryIcons[category]);
+                            const address = feature.place_name; // Get the address
+                            const avgRating = df_avgjson[address]; // Retrieve the average rating from df_avg
+                            const el = createCustomMarker(categoryIcons[category], avgRating); // Pass the rating to the marker
                             const popupContent = `
                                 <h3>${index + 1}. ${feature.text}</h3>
                                 <p>${feature.place_name}</p>
@@ -250,14 +254,40 @@
             });
         }
 
-        function createCustomMarker(icon) {
+        function createCustomMarker(icon, rating) {
             const el = document.createElement('div');
             el.className = 'custom-marker';
+            el.style.display = 'flex'; // Use flex to align items horizontally
+            el.style.alignItems = 'center'; // Center items vertically
+
+            // Create an image element for the icon
             const img = document.createElement('img');
             img.src = icon;
             img.style.width = '30px';
             img.style.height = '30px';
             el.appendChild(img);
+
+            // Create a text element for the rating
+            if (rating !== undefined) {
+                const ratingText = document.createElement('div');
+                ratingText.style.display = 'flex'; // Use flex to align items
+                ratingText.style.alignItems = 'center'; // Center items vertically
+                ratingText.style.marginLeft = '2px'; // Space between icon and rating
+
+                // Create an emoji element
+                const emoji = document.createElement('span');
+                emoji.textContent = '💩'; // Poop emoji
+                emoji.style.marginRight = '2px'; // Space between emoji and rating
+
+                // Add the emoji and rating text to the ratingText container
+                ratingText.appendChild(emoji);
+                ratingText.appendChild(document.createTextNode(rating.toFixed(1))); // Format to 1 decimal place
+                ratingText.style.color = 'green'; // Text color
+                ratingText.style.fontWeight = 'bold'; // Make it bold
+                ratingText.style.fontSize = '18px'; // Font size
+                el.appendChild(ratingText);
+            }
+
             return el;
         }
 
