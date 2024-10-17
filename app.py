@@ -9,12 +9,14 @@ app = Flask(__name__)
 conn = sqlite3.connect('templates/data.db',check_same_thread=False)
 df = pd.read_sql_query("SELECT * FROM reviews", conn)
 
-if df is None:
-    df = pd.DataFrame(columns=['Address', 'Rating', 'Comments','Date_Time'])
+#df = pd.DataFrame(columns=['Address', 'Rating', 'Comments','Date_Time','ID'])
+#app.logger.info(f"New entry: {df.to_dict('records')}")
+#df.to_sql('reviews', conn, if_exists='replace', index=False)
 
-df_avg = df.groupby('Address', as_index=False)['Rating'].mean()
-df_avg.columns = ['Address', 'Average_Rating']
-df_avg_dict = df_avg.set_index('Address')['Average_Rating'].to_dict()
+df_avg = df.groupby('ID', as_index=False)['Rating'].mean()
+df_avg.columns = ['ID', 'Average_Rating']
+df_avg_dict = df_avg.set_index('ID')['Average_Rating'].to_dict()
+ # Debugging line to check the structure of review
 
 @app.route('/')
 def home():
@@ -55,7 +57,8 @@ def submit():
         'Address': [review['address']],
         'Rating': [int(review['rating'])],
         'Comments': [review['comments']],
-        'Date_Time': [review['Date_Time']]      
+        'Date_Time': [review['Date_Time']],
+        'ID': [review['id']],      
     })
 
     app.logger.info(f"New entry: {new_entry.to_dict('records')}")

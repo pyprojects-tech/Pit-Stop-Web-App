@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search for a Pit Stop</title>
-    <script>const df_avgjson = {{ df_avg | tojson }};</script>
+    <script>
+        const df_avgjson = {{ df_avg | tojson }};
+    </script>
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
@@ -201,95 +203,107 @@
 
             const promises = selectedCategories.map(category => {
                 const searchTerm = category === 'rest stop' ? 'rest area' : category;
-                const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchTerm)}.json?proximity=${userLocation[0]},${userLocation[1]}&limit=10&access_token=${mapboxgl.accessToken}`;
+                const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchTerm)}.json?proximity=${userLocation[0]},${userLocation[1]}&limit=10&types=poi&access_token=${mapboxgl.accessToken}`;
 
                 return fetch(url)
                     .then(response => response.json())
                     .then(data => {
-                        return data.features.map((feature, index) => {
-                            const address = feature.place_name; // Get the address
-                            const avgRating = df_avgjson[address]; // Retrieve the average rating from df_avg
-                            const el = createCustomMarker(categoryIcons[category], avgRating); // Pass the rating to the marker
-                            const popupContent = `
-                                <h3>${index + 1}. ${feature.text}</h3>
-                                <p>${feature.place_name}</p>
-                                <a href="#" class="review-button">Leave a Review</a>
-                            `;
-                            const marker = new mapboxgl.Marker(el)
-                                .setLngLat(feature.center)
-                                .setPopup(new mapboxgl.Popup().setHTML(popupContent));
-                            return { marker, popupContent, locationName: feature.text };
-                        });
+                        return Promise.all(data.features.map((feature) => {
+                            const address = feature.place_name;
+                            const mapboxAccessToken = 'pk.eyJ1IjoicHlwcm9qZWN0c3RlY2giLCJhIjoiY20wb2kxMG1wMDkyazJscHkzamZ0ZWNhbSJ9.IKqL2NV6IzGWoMPhc4DfVg'; 
+                            const geocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxAccessToken}`;
+    
+                            return fetch(geocodingUrl)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.features && data.features.length > 0) {
+                                        const firstFeature = data.features[0];
+                                        const uniqueId = `address.${firstFeature.id.split('.').pop()}`;
+                                        const address_geo= firstFeature.place_name
+                                        const el = createCustomMarker(address, uniqueId);
+
+                                        // Create popup content
+                                        const popupContent = `
+                                            <h3>${feature.text}</h3>
+                                            <p>${address_geo}</p>
+                                            <p>Unique ID: ${uniqueId}</p>
+                                            <a href="#" class="review-button">Leave a Review</a>`;
+
+                                        const marker = new mapboxgl.Marker(el)
+                                            .setLngLat(feature.center);
+
+                                        // Set the popup for the marker
+                                        if (popupContent && typeof popupContent === 'string') {
+                                            const popup = new mapboxgl.Popup({ offset: 25 })
+                                                .setHTML(popupContent);
+                                            marker.setPopup(popup);
+                                        }
+
+                                        return { marker, uniqueId, address,address_geo };
+                                    }
+                                    return null;
+                                });
+                        }));
                     });
             });
 
-            Promise.all(promises).then(markerGroups => {
-                console.log("All promises resolved");
-                markers = markerGroups.flat();
-                console.log(`Total markers created: ${markers.length}`);
-                markers = clusterMarkers(markers);
-                markers.forEach(({ marker, popupContent, locationName }) => {
-                    console.log(`Adding marker at ${marker.getLngLat()}`);
-                    const popup = new mapboxgl.Popup().setHTML(popupContent);
-                    
-                    popup.on('open', () => {
-                        const reviewButton = popup.getElement().querySelector('.review-button');
-                        if (reviewButton) {
-                            reviewButton.addEventListener('click', (e) => {
-                                e.preventDefault();
-                                const address = encodeURIComponent(popup.getElement().querySelector('p').textContent);
-                                const name = encodeURIComponent(locationName);
-                                console.log(`Redirecting to review page with address: ${address} and name: ${name}`);
-                                window.location.href = `{{ url_for('review') }}?address=${address}&name=${name}`;
-                            });
+            Promise.all(promises)
+                .then(markerGroups => {
+                    markers = markerGroups.flat().filter(marker => marker !== null);
+                    const uniqueMarkers = new Map();
+                    markers.forEach(markerData => {
+                        if (!uniqueMarkers.has(markerData.uniqueId)) {
+                            uniqueMarkers.set(markerData.uniqueId, markerData);
                         }
                     });
-                    
-                    marker.setPopup(popup);
-                    marker.addTo(map);
+                    markers = Array.from(uniqueMarkers.values());
+                    markers.forEach(({ marker }) => {
+                        if (marker && typeof marker.addTo === 'function') {
+                            marker.addTo(map);
+                        }
+                    });
+                    fitMapToMarkers();
+                })
+                .catch(error => {
+                    console.error("Error in updateMap:", error);
                 });
-                fitMapToMarkers();
-            }).catch(error => {
-                console.error("Error in updateMap:", error);
-            });
         }
 
-        function createCustomMarker(icon, rating) {
+        function createCustomMarker(address, uniqueId) {
+            console.log(`Creating marker for Address: ${address}, Unique ID: ${uniqueId}`);
+            
             const el = document.createElement('div');
             el.className = 'custom-marker';
-            el.style.display = 'flex'; // Use flex to align items horizontally
-            el.style.alignItems = 'center'; // Center items vertically
+            el.style.display = 'flex';
+            el.style.alignItems = 'center';
 
-            // Create an image element for the icon
-            const img = document.createElement('img');
-            img.src = icon;
-            img.style.width = '30px';
-            img.style.height = '30px';
-            el.appendChild(img);
+            const emoji = document.createElement('span');
+            emoji.textContent = '💩';
+            emoji.style.fontSize = '30px';
 
-            // Create a text element for the rating
-            if (rating !== undefined) {
-                const ratingText = document.createElement('div');
-                ratingText.style.display = 'flex'; // Use flex to align items
-                ratingText.style.alignItems = 'center'; // Center items vertically
-                ratingText.style.marginLeft = '2px'; // Space between icon and rating
-
-                // Create an emoji element
-                const emoji = document.createElement('span');
-                emoji.textContent = '💩'; // Poop emoji
-                emoji.style.marginRight = '2px'; // Space between emoji and rating
-
-                // Add the emoji and rating text to the ratingText container
-                ratingText.appendChild(emoji);
-                ratingText.appendChild(document.createTextNode(rating.toFixed(1))); // Format to 1 decimal place
-                ratingText.style.color = 'green'; // Text color
-                ratingText.style.fontWeight = 'bold'; // Make it bold
-                ratingText.style.fontSize = '18px'; // Font size
+            // Check if the uniqueId exists in df_avgjson
+            if (df_avgjson.hasOwnProperty(uniqueId)) {
+                const rating = df_avgjson[uniqueId];
+                
+                const ratingText = document.createElement('span');
+                ratingText.textContent = `Rating: ${rating}`;
+                
+                emoji.style.opacity = '1'; // Fully visible for available reviews
+                
                 el.appendChild(ratingText);
+            } else {
+                const noRatingText = document.createElement('span');
+                noRatingText.textContent = 'No Rating';
+                
+                emoji.style.opacity = '0.2'; // Greyed out for no reviews
+                
+                el.appendChild(noRatingText);
             }
 
+            el.appendChild(emoji);
             return el;
         }
+
 
         function fitMapToMarkers() {
             const bounds = new mapboxgl.LngLatBounds();

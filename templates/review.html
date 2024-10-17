@@ -188,11 +188,11 @@
         </div>
 
     <script>
-        mapboxgl.accessToken = '{{ mapbox_access_token }}';
+        mapboxgl.accessToken = 'pk.eyJ1IjoicHlwcm9qZWN0c3RlY2giLCJhIjoiY20wb2kxMG1wMDkyazJscHkzamZ0ZWNhbSJ9.IKqL2NV6IzGWoMPhc4DfVg';
 
         const geocoder = new MapboxGeocoder({
             accessToken: mapboxgl.accessToken,
-            types: 'address,poi',
+            types: 'poi,address',
             countries: 'us',
             language: 'en',
             limit: 1,
@@ -211,6 +211,7 @@
 
         const addressParam = getUrlParameter('address');
         const nameParam = getUrlParameter('name');
+        const idParam = getUrlParameter('id');
 
         console.log(`Received address: ${addressParam}, name: ${nameParam}`);
 
@@ -236,21 +237,38 @@
             });
         }
 
+
         function submitEntries(event) {
             event.preventDefault();
-            
-            const addressInput = document.querySelector('.mapboxgl-ctrl-geocoder input');
-            const address = addressInput ? addressInput.value : '';
-            const rating = document.querySelector('input[name="rating"]:checked')?.value || '';
-            const comments = document.getElementById('comments').value;
-            const Date_time = new Date().toLocaleString();
 
-            const reviewData = {
-                address: address,
-                rating: rating,
-                comments: comments,
-                Date_Time: Date_time
-            };
+            const addressInput = document.querySelector('.mapboxgl-ctrl-geocoder input');
+            const address = addressInput ? addressInput.value : ''; // Get the value from the input field
+
+            const mapboxAccessToken = 'pk.eyJ1IjoicHlwcm9qZWN0c3RlY2giLCJhIjoiY20wb2kxMG1wMDkyazJscHkzamZ0ZWNhbSJ9.IKqL2NV6IzGWoMPhc4DfVg'; 
+            const geocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxAccessToken}`;
+            
+            fetch(geocodingUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const features = data.features;
+                    if (features.length > 0) {
+                        const firstFeature = features[0]; // Get the first feature
+                        const placeName = firstFeature.place_name; // Extract the place name
+                        const placeId = `address.${firstFeature.id.split('.').pop()}`;
+                        
+                        const rating = document.querySelector('input[name="rating"]:checked')?.value || '';
+                        const comments = document.getElementById('comments').value;
+                        const Date_time = new Date().toLocaleString();
+
+                        const reviewData = {
+                            address: placeName, // Use feature.place_name for the address
+                            rating: rating,
+                            comments: comments,
+                            Date_Time: Date_time,
+                            id: placeId
+                        };
+
+            // Continue with your logic to handle reviewData (e.g., send it to the server)
 
             console.log('Submitting review:', reviewData);
 
@@ -263,7 +281,10 @@
                     console.error('Error:', error.response?.data || error.message);
                     alert('An error occurred while submitting the review.');
                 });
-        }
+                }
+                })
+            }
+
 
         function resetEntries() {
             const addressInput = document.querySelector('.mapboxgl-ctrl-geocoder input');

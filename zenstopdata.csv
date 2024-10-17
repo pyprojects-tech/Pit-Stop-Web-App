@@ -1,6 +1,26 @@
-Address,Rating,Comments,Date_Time
-"N College Ave, Fayetteville, Arkansas 72703, United States",4,,"10/2/2024, 6:19:04 PM"
-"3010 North College Avenue, Fayetteville, Arkansas 72703, United States",4,,"10/2/2024, 6:24:01 PM"
-"White Oak Station, 3831 N Crossover Rd, Fayetteville, Arkansas 72703, United States",4,,"10/2/2024, 6:24:37 PM"
-"3010 North College Avenue, Fayetteville, Arkansas 72703, United States",4,,"10/6/2024, 3:20:03 PM"
-"2570 North College Avenue, Fayetteville, Arkansas 72703, United States",3,,"10/6/2024, 3:20:15 PM"
+Address,Rating,Comments,Date_Time,ID
+"212 Steakhouse, 316 E 53rd St, New York City, New York 10022, United States",4,,"10/14/2024, 7:22:02 PM",
+"Bolivia, North Carolina 28422, United States",4,,"10/14/2024, 7:29:16 PM",postcode.91008748
+"E Hennepin Ave, Minneapolis, Minnesota 55413, United States",4,,"10/14/2024, 7:29:35 PM",address.8882755491443416
+"East Hennepin Avenue, Minneapolis, Minnesota 55414, United States",4,,"10/14/2024, 7:29:50 PM",address.2566642876217220
+"3010 North College Avenue, Indianapolis, Indiana 46205, United States",4,,"10/14/2024, 7:29:59 PM",address.1531493480121780
+"3010 North College Avenue, Indianapolis, Indiana 46205, United States",4,,"10/14/2024, 7:30:21 PM",address.1531493480121780
+"Kum N Go Drive, Bentonville, Arkansas 72713, United States",4,,"10/14/2024, 7:30:37 PM",address.4744453743606738
+"3010 North Pleasant Drive, East Palestine, Ohio 44413, United States",4,,"10/14/2024, 7:31:30 PM",address.5194852781008360
+"4315 North Crossover Road, Fayetteville, Arkansas 72703, United States",4,,"10/14/2024, 7:33:51 PM",address.8496461311158022
+"4315 North Crossover Road, Fayetteville, Arkansas 72703, United States",5,,"10/14/2024, 7:33:56 PM",address.8496461311158022
+"4315 North Crossover Road, Fayetteville, Arkansas 72703, United States",4,,"10/14/2024, 7:34:00 PM",address.8496461311158022
+"4315 North Crossover Road, Fayetteville, Arkansas 72703, United States",4,,"10/15/2024, 8:25:45 PM",address.8496461311158022
+"Bolivia, North Carolina 28422, United States",4,,"10/15/2024, 8:30:01 PM",postcode.91008748
+"4315 North Crossover Road, Fayetteville, Arkansas 72703, United States",4,,"10/15/2024, 8:30:12 PM",address.8496461311158022
+"4315 North Crossover Road, Fayetteville, Arkansas 72703, United States",4,,"10/15/2024, 8:30:40 PM",address.8496461311158022
+"4315 North Crossover Road, Fayetteville, Arkansas 72703, United States",4,,"10/15/2024, 8:33:48 PM",address.8496461311158022
+"Sarah Bush Lincoln Health Center, 1005 Health Center Dr, Mattoon, Illinois 61938, United States",4,,"10/15/2024, 8:41:48 PM",poi.377957129485
+"4315 North Crossover Road, Fayetteville, Arkansas 72703, United States",4,,"10/15/2024, 8:42:21 PM",address.8496461311158022
+"4315 North Crossover Road, Fayetteville, Arkansas 72703, United States",4,,"10/16/2024, 7:10:57 AM",address.8496461311158022
+"4315 North Crossover Road, Fayetteville, Arkansas 72703, United States",4,,"10/16/2024, 7:21:22 PM",address.8496461311158022
+"4315 North Crossover Road, Fayetteville, Arkansas 72703, United States",4,,"10/16/2024, 7:22:00 PM",address.8496461311158022
+"4315 North Crossover Road, Fayetteville, Arkansas 72703, United States",4,,"10/16/2024, 7:23:31 PM",address.8496461311158022
+"4315 North Crossover Road, Fayetteville, Arkansas 72703, United States",3,,"10/16/2024, 7:28:01 PM",address.8496461311158022
+"4315 North Crossover Road, Fayetteville, Arkansas 72703, United States",4,,"10/16/2024, 7:39:59 PM",address.8496461311158022
+"1940 North Crossover Road, Fayetteville, Arkansas 72703, United States",4,,"10/16/2024, 8:08:03 PM",address.8496461311158022
